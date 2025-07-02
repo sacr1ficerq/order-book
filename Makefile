@@ -1,13 +1,19 @@
 IMAGE_NAME := myclang
+
 BUILD_DIR := build
+TEST_BUILD_DIR := build_tests
+
 WORKING_DIR := /workspace
 SRC_MOUNT := --mount type=bind,source=.,target=$(WORKING_DIR)
 BUILD_TYPE := Debug
 
+TEST_EXECUTABLE := order_book_tests
+MAIN_EXECUTABLE := main
+
 DOCKER_RUN := docker run --rm -t $(SRC_MOUNT) $(IMAGE_NAME)
 DOCKER_INTERACTIVE := docker run --rm -it $(SRC_MOUNT) $(IMAGE_NAME)
 
-.PHONY: all build configure run start clean
+.PHONY: all build configure run start clean build_tests test
 
 all: build
 
@@ -17,13 +23,25 @@ $(BUILD_DIR)/Makefile: CMakeLists.txt
 	@echo "--- Configuring CMake ---"
 	@$(DOCKER_RUN) cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
 
+$(TEST_BUILD_DIR)/Makefile: CMakeLists.txt
+	@echo "--- Configuring CMake for test build ---"
+	@$(DOCKER_RUN) cmake -S . -B $(TEST_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
+
 build: $(BUILD_DIR)/Makefile
 	@echo "--- Building Project ---"
-	@$(DOCKER_RUN) cmake --build $(BUILD_DIR)
+	@$(DOCKER_RUN) cmake --build $(BUILD_DIR) --target $(MAIN_EXECUTABLE)
+
+build_tests: $(TEST_BUILD_DIR)/Makefile
+	@echo "--- Building Tests ---"
+	@$(DOCKER_RUN) cmake --build $(TEST_BUILD_DIR) --target $(TEST_EXECUTABLE)
 
 run: build
 	@echo "--- Running Executable ---"
-	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/main
+	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/$(MAIN_EXECUTABLE)
+
+test: build_tests
+	@echo "--- Running Tests ---"
+	@$(DOCKER_RUN) $(WORKING_DIR)/$(TEST_BUILD_DIR)/$(TEST_EXECUTABLE)
 
 start:
 	@$(DOCKER_INTERACTIVE)
@@ -31,3 +49,5 @@ start:
 clean:
 	@echo "--- Cleaning Build Directory ---"
 	@if [ -d "$(BUILD_DIR)" ]; then rm -rf $(BUILD_DIR); fi
+	@echo "--- Cleaning Test-Build Directory ---"
+	@if [ -d "$(TEST_BUILD_DIR)" ]; then rm -rf $(TEST_BUILD_DIR); fi
