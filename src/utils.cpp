@@ -6,75 +6,68 @@
 
 namespace orderbook {
 
-template<typename It1_, typename It2_>
-inline Update* mergeSnapDepth(const It1_& lhsBeg, const It1_& lhsEnd, const It2_& rhsBeg, const It2_& rhsEnd, Update* _Dest)
-{
-    auto _UFirst1 = lhsBeg;
-    const auto _ULast1 = lhsEnd;
-    auto _UFirst2 = rhsBeg;
-    const auto _ULast2 = rhsEnd;
-    Update* _UDest = _Dest;
-
-    for (; _UFirst1 != _ULast1 && _UFirst2 != _ULast2;) {
-        if (_UFirst2->price < _UFirst1->price) {
-            *_UDest = *_UFirst2;
-            ++_UDest;
-            ++_UFirst2;
-        }
-        else {
-            const bool bFirst = _UFirst1->quantity;
-            _UDest->price = _UFirst1->price;
-            _UDest->quantity =_UFirst1->quantity;
-            _UDest += bFirst;
-
-            _UFirst2 += !(_UFirst1->price < _UFirst2->price);
-            ++_UFirst1;
+inline Update* merge(const Update* cur_ptr, const Update* current_end, const Update* update_ptr, const Update* update_end, Update* next_ptr) {
+    while (cur_ptr != current_end && update_ptr != update_end) {
+        if (update_ptr->price < cur_ptr->price) {
+            if (update_ptr->quantity > 0) {
+                *next_ptr++ = *update_ptr;
+            }
+            ++update_ptr;
+        } else if (cur_ptr->price < update_ptr->price) {
+            *next_ptr++ = *cur_ptr;
+            ++cur_ptr;
+        } else {
+            if (update_ptr->quantity > 0) {
+                *next_ptr++ = *update_ptr;
+            }
+            ++cur_ptr;
+            ++update_ptr;
         }
     }
-
-    for (; _UFirst1 != _ULast1; ++_UFirst1) {
-        const bool bFirst = _UFirst1->quantity;
-        _UDest->price = _UFirst1->price;
-        _UDest->quantity = _UFirst1->quantity;
-        _UDest += bFirst;
+    
+    while (cur_ptr != current_end) {
+        *next_ptr++ = *cur_ptr++;
     }
-
-    _Dest = std::copy(_UFirst2, _ULast2, _UDest);
-
-    return _Dest;
+    
+    while (update_ptr != update_end) {
+        if (update_ptr->quantity > 0) {
+            *next_ptr++ = *update_ptr;
+        }
+        ++update_ptr;
+    }
+    return next_ptr;
 }
 
 uint64_t Solve(const Updates& updates) {
     uint64_t result = 0;
-
-    std::array<Update, 400 + 1> book1{};
-    std::array<Update, 400 + 1> book2{};
-
-    std::pair<Update*, Update*> ptrs1 = { book1.data(), book1.data() };
-    std::pair<Update*, Update*> ptrs2 = { book2.data(), book2.data() };
-
+    
+    alignas(64) std::array<Update, 400 + 1> book1{};
+    alignas(64) std::array<Update, 400 + 1> book2{};
+    
+    Update* current_book = book1.data();
+    Update* next_book = book2.data();
+    Update* current_end = current_book;
+    
     for (const auto& [update, shares] : updates) {
+        auto next_ptr = merge(current_book, current_end, update.data(), update.data() + update.size(), next_book);
+
         uint64_t cur_result = 0;
-        ptrs2.second = mergeSnapDepth(update.begin(), update.end(), ptrs1.first, ptrs1.second, ptrs2.first);
-
         uint32_t sharesRem = shares;
-        Update* p = ptrs2.first;
-        for (; p != ptrs2.second; ++p) {
-            if (sharesRem < p->quantity) {
-                break;
-            }
-            cur_result += p->quantity * p->price;
-            sharesRem -= p->quantity;
+        const Update* p = next_book;
+        
+        while (sharesRem > 0 && p != next_ptr) {
+            uint32_t take = std::min(sharesRem, p->quantity);
+            cur_result += static_cast<uint64_t>(take) * p->price;
+            sharesRem -= take;
+            ++p;
         }
-        if (p != ptrs2.second) {
-            cur_result += sharesRem * p->price;
-        }        
-
+        
         result ^= cur_result;
-
-        std::swap(ptrs1, ptrs2);
+        
+        std::swap(current_book, next_book);
+        current_end = next_ptr;
     }
-
+    
     return result;
 }
 

@@ -9,11 +9,12 @@ BUILD_TYPE := Debug
 
 TEST_EXECUTABLE := order_book_tests
 MAIN_EXECUTABLE := main
+BASELINE_EXECUTABLE := baseline
 
 DOCKER_RUN := docker run --rm -t $(SRC_MOUNT) $(IMAGE_NAME)
 DOCKER_INTERACTIVE := docker run --rm -it $(SRC_MOUNT) $(IMAGE_NAME)
 
-.PHONY: all build configure run start clean build_tests test
+.PHONY: all build configure run start clean test
 
 all: build
 
@@ -30,18 +31,22 @@ $(TEST_BUILD_DIR)/Makefile: CMakeLists.txt
 build: $(BUILD_DIR)/Makefile
 	@echo "--- Building Project ---"
 	@$(DOCKER_RUN) cmake --build $(BUILD_DIR) --target $(MAIN_EXECUTABLE)
-
-build_tests: $(TEST_BUILD_DIR)/Makefile
 	@echo "--- Building Tests ---"
-	@$(DOCKER_RUN) cmake --build $(TEST_BUILD_DIR) --target $(TEST_EXECUTABLE)
+	@$(DOCKER_RUN) cmake --build $(BUILD_DIR) --target $(TEST_EXECUTABLE)
+	@echo "--- Building Baseline ---"
+	@$(DOCKER_RUN) cmake --build $(BUILD_DIR) --target $(BASELINE_EXECUTABLE)
 
 run: build
 	@echo "--- Running Executable ---"
 	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/$(MAIN_EXECUTABLE)
 
-test: build_tests
+test: build
 	@echo "--- Running Tests ---"
-	@$(DOCKER_RUN) $(WORKING_DIR)/$(TEST_BUILD_DIR)/$(TEST_EXECUTABLE)
+	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/$(TEST_EXECUTABLE)
+
+basseline: build
+	@echo "--- Running Baseline ---"
+	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/$(BASELINE_EXECUTABLE)
 
 start:
 	@$(DOCKER_INTERACTIVE)
@@ -49,5 +54,3 @@ start:
 clean:
 	@echo "--- Cleaning Build Directory ---"
 	@if [ -d "$(BUILD_DIR)" ]; then rm -rf $(BUILD_DIR); fi
-	@echo "--- Cleaning Test-Build Directory ---"
-	@if [ -d "$(TEST_BUILD_DIR)" ]; then rm -rf $(TEST_BUILD_DIR); fi
