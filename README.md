@@ -1,1 +1,1 @@
-For now just a baseline implementation of Order Book problem.
+Baseline implementation of Order Book problem with `GTest`.
