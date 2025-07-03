@@ -68,7 +68,8 @@ uint64_t Solve(const Updates& updates) {
             sharesRem -= p->quantity;
         }
         if (p != ptrs2.second) {
-            cur_result += sharesRem * p->price;
+            // I added static_cast because without it overflow possible (and it happens in my tests)
+            cur_result += static_cast<uint64_t>(sharesRem) * p->price;
         }        
 
         result ^= cur_result;

@@ -2,22 +2,23 @@
 #include <print>
 #include <cstdint>
 #include <vector>
+#include <cstdlib>
+#include <fstream>
+#include <sstream>
+#include <cassert>
 
 #include "orderbook/utils.hpp"
 
-int main() {
-    orderbook::UpdateRow row1 = {{100, 5}, {110, 10}, {111, 1}};
-    orderbook::UpdateRow row2 = {{100, 1}};
-    orderbook::UpdateRow row3 = {{110, 0}, {120, 3}};
+int main(int argc, char** argv) {
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " FILENAME\n";
+        std::exit(EXIT_FAILURE);
+    }
 
-    std::vector<orderbook::UpdateRowWithShares> updates = {
-        {row1, 15},
-        {row2, 12},
-        {row3, 4}
-    };
+    orderbook::Updates updates = orderbook::parse_updates(argv[1]);
+    std::println("--- Ended reading file ---");
 
-    uint64_t result = orderbook::Solve(updates);
-    std::println("Result: {}", result);
+    std::println("Result: {}", orderbook::Solve(updates));
 
     return 0;
 }

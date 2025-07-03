@@ -1,16 +1,17 @@
 IMAGE_NAME := myclang
 
 BUILD_DIR := build
-TEST_BUILD_DIR := build_tests
+TESTS_DIR := tests
+INPUT_FILENAME := input.txt
 
 WORKING_DIR := /workspace
 SRC_MOUNT := --mount type=bind,source=.,target=$(WORKING_DIR)
-BUILD_TYPE := Debug
+BUILD_TYPE := Release
 
-TEST_EXECUTABLE := order_book_tests
-MAIN_EXECUTABLE := main
+TEST_EXECUTABLE := solution_tests
+SOLUTION_EXECUTABLE := solution
 BASELINE_EXECUTABLE := baseline
-BENCHMARK_EXECUTABLE := order_book_benchmarks
+BENCHMARK_EXECUTABLE := solution_benchmarks
 BASELINE_BENCHMARK_EXECUTABLE := baseline_benchmarks
 
 DOCKER_RUN := docker run --rm -t $(SRC_MOUNT) $(IMAGE_NAME)
@@ -26,13 +27,9 @@ $(BUILD_DIR)/Makefile: CMakeLists.txt
 	@echo "--- Configuring CMake ---"
 	@$(DOCKER_RUN) cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
 
-$(TEST_BUILD_DIR)/Makefile: CMakeLists.txt
-	@echo "--- Configuring CMake for test build ---"
-	@$(DOCKER_RUN) cmake -S . -B $(TEST_BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
-
 build: $(BUILD_DIR)/Makefile
 	@echo "--- Building Project ---"
-	@$(DOCKER_RUN) cmake --build $(BUILD_DIR) --target $(MAIN_EXECUTABLE)
+	@$(DOCKER_RUN) cmake --build $(BUILD_DIR) --target $(SOLUTION_EXECUTABLE)
 	@echo "--- Building Tests ---"
 	@$(DOCKER_RUN) cmake --build $(BUILD_DIR) --target $(TEST_EXECUTABLE)
 	@echo "--- Building Baseline ---"
@@ -44,15 +41,19 @@ build: $(BUILD_DIR)/Makefile
 
 run: build
 	@echo "--- Running Executable ---"
-	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/$(MAIN_EXECUTABLE)
+	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/$(MAIN_EXECUTABLE) $(WORKING_DIR)/$(TESTS_DIR)/$(INPUT_FILENAME)
 
 test: build
 	@echo "--- Running Tests ---"
 	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/$(TEST_EXECUTABLE)
 
-basseline: build
+baseline: build
 	@echo "--- Running Baseline ---"
-	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/$(BASELINE_EXECUTABLE)
+	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/$(BASELINE_EXECUTABLE) $(WORKING_DIR)/$(TESTS_DIR)/$(INPUT_FILENAME)
+
+run-baseline:
+	@echo "--- Running Baseline ---"
+	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/$(BASELINE_EXECUTABLE) $(WORKING_DIR)/$(TESTS_DIR)/$(INPUT_FILENAME)
 
 benchmark: build
 	@echo "--- Running Benchmark ---"
@@ -61,6 +62,11 @@ benchmark: build
 baseline-benchmark: build
 	@echo "--- Running Benchmark ---"
 	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/$(BASELINE_BENCHMARK_EXECUTABLE)
+
+generate-test:
+	@echo "--- Generating Tests ---"
+	@python $(WORKING_DIR)/$(TESTS_DIR)/generate-test.py $(INPUT_FILENAME)
+
 
 start:
 	@$(DOCKER_INTERACTIVE)

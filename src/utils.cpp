@@ -1,74 +1,55 @@
+#include <iostream>
+#include <print>
 #include <cstdint>
+#include <vector>
+#include <cstdlib>
+#include <fstream>
+#include <sstream>
+#include <cassert>
 #include <algorithm>
 #include <array>
 
 #include "orderbook/utils.hpp"
 
 namespace orderbook {
+Updates parse_updates(const std::string& filename) {
+    std::ifstream input(filename);
+    if (!input) {
+        std::cerr << "Error: Could not open file\n";
+        std::exit(EXIT_FAILURE);
+    }
 
-inline Update* merge(const Update* cur_ptr, const Update* current_end, const Update* update_ptr, const Update* update_end, Update* next_ptr) {
-    while (cur_ptr != current_end && update_ptr != update_end) {
-        if (update_ptr->price < cur_ptr->price) {
-            if (update_ptr->quantity > 0) {
-                *next_ptr++ = *update_ptr;
-            }
-            ++update_ptr;
-        } else if (cur_ptr->price < update_ptr->price) {
-            *next_ptr++ = *cur_ptr;
-            ++cur_ptr;
-        } else {
-            if (update_ptr->quantity > 0) {
-                *next_ptr++ = *update_ptr;
-            }
-            ++cur_ptr;
-            ++update_ptr;
+    int num_rows;
+    input >> num_rows;
+    assert(num_rows <= 50'000);
+
+    Updates updates;
+    updates.reserve(num_rows);
+
+    for (int i = 0; i < num_rows; ++i) {
+        int num_pairs;
+        input >> num_pairs;
+
+        UpdateRow update_row;
+        update_row.reserve(num_pairs);
+
+        for (int j = 0; j < num_pairs; ++j) {
+            uint32_t price, quantity;
+            input >> price >> quantity;
+            assert(price > 0 && price <= 100'000);
+            assert(quantity <= 1'000'000'000);
+            update_row.emplace_back(price, quantity);
+        }
+
+        uint32_t shares;
+        input >> shares;
+        updates.emplace_back(std::move(update_row), shares);
+
+        if (!input) {
+            std::cerr << "Error: Parse failed on iteration " << i << std::endl;
+            std::exit(EXIT_FAILURE);
         }
     }
-    
-    while (cur_ptr != current_end) {
-        *next_ptr++ = *cur_ptr++;
-    }
-    
-    while (update_ptr != update_end) {
-        if (update_ptr->quantity > 0) {
-            *next_ptr++ = *update_ptr;
-        }
-        ++update_ptr;
-    }
-    return next_ptr;
+    return updates;
 }
-
-uint64_t Solve(const Updates& updates) {
-    uint64_t result = 0;
-    
-    alignas(64) std::array<Update, 400 + 1> book1{};
-    alignas(64) std::array<Update, 400 + 1> book2{};
-    
-    Update* current_book = book1.data();
-    Update* next_book = book2.data();
-    Update* current_end = current_book;
-    
-    for (const auto& [update, shares] : updates) {
-        auto next_ptr = merge(current_book, current_end, update.data(), update.data() + update.size(), next_book);
-
-        uint64_t cur_result = 0;
-        uint32_t sharesRem = shares;
-        const Update* p = next_book;
-        
-        while (sharesRem > 0 && p != next_ptr) {
-            uint32_t take = std::min(sharesRem, p->quantity);
-            cur_result += static_cast<uint64_t>(take) * p->price;
-            sharesRem -= take;
-            ++p;
-        }
-        
-        result ^= cur_result;
-        
-        std::swap(current_book, next_book);
-        current_end = next_ptr;
-    }
-    
-    return result;
-}
-
 } // namespace orderbook

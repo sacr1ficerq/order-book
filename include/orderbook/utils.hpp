@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <string>
 
 namespace orderbook {
 
@@ -20,4 +21,5 @@ using Updates = std::vector<UpdateRowWithShares>;
 
 uint64_t Solve(const Updates& updates);
 
+Updates parse_updates(const std::string& filename);
 } // namespace orderbook
