@@ -10,6 +10,8 @@ BUILD_TYPE := Debug
 TEST_EXECUTABLE := order_book_tests
 MAIN_EXECUTABLE := main
 BASELINE_EXECUTABLE := baseline
+BENCHMARK_EXECUTABLE := order_book_benchmarks
+BASELINE_BENCHMARK_EXECUTABLE := baseline_benchmarks
 
 DOCKER_RUN := docker run --rm -t $(SRC_MOUNT) $(IMAGE_NAME)
 DOCKER_INTERACTIVE := docker run --rm -it $(SRC_MOUNT) $(IMAGE_NAME)
@@ -35,6 +37,10 @@ build: $(BUILD_DIR)/Makefile
 	@$(DOCKER_RUN) cmake --build $(BUILD_DIR) --target $(TEST_EXECUTABLE)
 	@echo "--- Building Baseline ---"
 	@$(DOCKER_RUN) cmake --build $(BUILD_DIR) --target $(BASELINE_EXECUTABLE)
+	@echo "--- Building Benchmark ---"
+	@$(DOCKER_RUN) cmake --build $(BUILD_DIR) --target $(BENCHMARK_EXECUTABLE)
+	@echo "--- Building Baseline Benchmark ---"
+	@$(DOCKER_RUN) cmake --build $(BUILD_DIR) --target $(BASELINE_BENCHMARK_EXECUTABLE)
 
 run: build
 	@echo "--- Running Executable ---"
@@ -47,6 +53,14 @@ test: build
 basseline: build
 	@echo "--- Running Baseline ---"
 	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/$(BASELINE_EXECUTABLE)
+
+benchmark: build
+	@echo "--- Running Benchmark ---"
+	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/$(BENCHMARK_EXECUTABLE)
+
+baseline-benchmark: build
+	@echo "--- Running Benchmark ---"
+	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/$(BASELINE_BENCHMARK_EXECUTABLE)
 
 start:
 	@$(DOCKER_INTERACTIVE)

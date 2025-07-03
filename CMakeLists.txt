@@ -34,7 +34,22 @@ FetchContent_Declare(
     GIT_TAG        v1.17.0
 )
 
+FetchContent_Declare(
+    benchmark 
+    GIT_REPOSITORY https://github.com/google/benchmark.git
+    GIT_TAG        v1.9.4
+)
+
 FetchContent_MakeAvailable(googletest)
+FetchContent_MakeAvailable(benchmark)
+
+add_executable(order_book_benchmarks benchmarks/benchmark_runner.cpp)
+target_link_libraries(order_book_benchmarks PRIVATE benchmark::benchmark_main orderbook)
+target_include_directories(order_book_benchmarks PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+add_executable(baseline_benchmarks benchmarks/benchmark_runner.cpp)
+target_link_libraries(baseline_benchmarks PRIVATE benchmark::benchmark_main baseline_lib)
+target_include_directories(baseline_benchmarks PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_executable(order_book_tests tests/utils_test.cpp)
 target_link_libraries(order_book_tests PRIVATE GTest::gtest_main orderbook)
