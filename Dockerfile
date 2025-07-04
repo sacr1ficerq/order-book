@@ -16,6 +16,8 @@ RUN apt-get update && \
     build-essential \
     cmake \
     vim \
+    linux-tools-$(uname -r) \
+    linux-tools-common \
     git && \
     # add LLVM GPG key and repository directly
     wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | gpg --dearmor > /etc/apt/trusted.gpg.d/llvm-archive-keyring.gpg && \
