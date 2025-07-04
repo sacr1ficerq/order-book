@@ -41,7 +41,7 @@ build: $(BUILD_DIR)/Makefile
 
 run: build
 	@echo "--- Running Executable ---"
-	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/$(MAIN_EXECUTABLE) $(WORKING_DIR)/$(TESTS_DIR)/$(INPUT_FILENAME)
+	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/$(SOLUTION_EXECUTABLE) $(WORKING_DIR)/$(TESTS_DIR)/$(INPUT_FILENAME)
 
 test: build
 	@echo "--- Running Tests ---"
@@ -55,18 +55,19 @@ run-baseline:
 	@echo "--- Running Baseline ---"
 	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/$(BASELINE_EXECUTABLE) $(WORKING_DIR)/$(TESTS_DIR)/$(INPUT_FILENAME)
 
-benchmark: build
+benchmark:
+	@echo "--- Warning: Dont forget to build! ---"
 	@echo "--- Running Benchmark ---"
-	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/$(BENCHMARK_EXECUTABLE)
+	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/$(BENCHMARK_EXECUTABLE) --benchmark_time_unit=ms
 
-baseline-benchmark: build
-	@echo "--- Running Benchmark ---"
-	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/$(BASELINE_BENCHMARK_EXECUTABLE)
+baseline-benchmark:
+	@echo "--- Warning: Dont forget to build! ---"
+	@echo "--- Running Baseline Benchmark ---"
+	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/$(BASELINE_BENCHMARK_EXECUTABLE) --benchmark_time_unit=ms
 
 generate-test:
 	@echo "--- Generating Tests ---"
 	@python $(WORKING_DIR)/$(TESTS_DIR)/generate-test.py $(INPUT_FILENAME)
-
 
 start:
 	@$(DOCKER_INTERACTIVE)

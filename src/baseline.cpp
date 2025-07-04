@@ -64,7 +64,7 @@ uint64_t Solve(const Updates& updates) {
             if (sharesRem < p->quantity) {
                 break;
             }
-            cur_result += p->quantity * p->price;
+            cur_result += static_cast<uint64_t>(p->quantity) * p->price;
             sharesRem -= p->quantity;
         }
         if (p != ptrs2.second) {

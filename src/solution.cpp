@@ -6,31 +6,6 @@
 
 namespace orderbook {
 
-inline Update* merge(const Update* cur_ptr, const Update* current_end, const Update* update_ptr, const Update* update_end, Update* next_ptr) {
-    while (cur_ptr != current_end && update_ptr != update_end) {
-        if (update_ptr->price < cur_ptr->price) {
-            if (update_ptr->quantity) *next_ptr++ = *update_ptr;
-            ++update_ptr;
-        } else if (cur_ptr->price < update_ptr->price) {
-            *next_ptr++ = *cur_ptr++;
-        } else {
-            if (update_ptr->quantity) *next_ptr++ = *update_ptr;
-            ++cur_ptr;
-            ++update_ptr;
-        }
-    }
-    
-    while (cur_ptr != current_end) {
-        *next_ptr++ = *cur_ptr++;
-    }
-    
-    while (update_ptr != update_end) {
-        if (update_ptr->quantity) *next_ptr++ = *update_ptr;
-        ++update_ptr;
-    }
-    return next_ptr;
-}
-
 uint64_t Solve(const Updates& updates) {
     uint64_t result = 0;
     
@@ -42,17 +17,55 @@ uint64_t Solve(const Updates& updates) {
     Update* current_end = current_book;
     
     for (const auto& [update, shares] : updates) {
-        auto next_ptr = merge(current_book, current_end, update.data(), update.data() + update.size(), next_book);
-
         uint64_t cur_result = 0;
-        uint32_t sharesRem = shares;
-        const Update* p = next_book;
+
+        const Update* cur_ptr = current_book;
+        const Update* update_ptr = update.data();
+        const Update* update_end = update.data() + update.size();
+        Update* next_ptr = next_book;
+        uint32_t shares_rem = shares;
+
+        while (cur_ptr != current_end && update_ptr != update_end) {
+            if (cur_ptr->price < update_ptr->price) {
+                *next_ptr = *cur_ptr++;
+
+                const uint32_t take = std::min(shares_rem, next_ptr->quantity);
+                cur_result += static_cast<uint64_t>(take) * next_ptr->price;
+                shares_rem -= take;
+
+                ++next_ptr;
+            } else {
+                *next_ptr = *update_ptr;
+
+                const uint32_t take = std::min(shares_rem, next_ptr->quantity);
+                cur_result += static_cast<uint64_t>(take) * next_ptr->price;
+                shares_rem -= take;
+
+                next_ptr += bool(update_ptr->quantity);
+                cur_ptr += bool(update_ptr->price == cur_ptr->price);
+                ++update_ptr;
+            }
+        }
         
-        while (sharesRem > 0 && p != next_ptr) {
-            uint32_t take = std::min(sharesRem, p->quantity);
-            cur_result += static_cast<uint64_t>(take) * p->price;
-            sharesRem -= take;
-            ++p;
+        while (cur_ptr != current_end) {
+            *next_ptr = *cur_ptr++;
+
+            const uint32_t take = std::min(shares_rem, next_ptr->quantity);
+            cur_result += static_cast<uint64_t>(take) * next_ptr->price;
+            shares_rem -= take;
+
+            ++next_ptr;
+        }
+
+        while (update_ptr != update_end) {
+            *next_ptr = *update_ptr;
+
+            const uint32_t take = std::min(shares_rem, next_ptr->quantity);
+            cur_result += static_cast<uint64_t>(take) * next_ptr->price;
+            shares_rem -= take;
+
+            next_ptr += bool(update_ptr->quantity);
+            ++update_ptr;
         }
         
         result ^= cur_result;
