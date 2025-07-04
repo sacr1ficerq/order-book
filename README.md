@@ -58,10 +58,6 @@ cur_result += static_cast<uint64_t>(p->quantity) * p->price;
 
 ### Baseline vs. Solution
 
-Of course. Here is the performance comparison based on the data you provided.
-
-### Performance Summary Table: Baseline vs. Solution
-
 | Metric | Baseline | Solution | Difference (B - S) | Change |
 | :--- | :--- | :--- | :--- | :--- |
 | **Execution Time (Google Benchmark)** | | | | |
