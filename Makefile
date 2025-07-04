@@ -75,21 +75,19 @@ run-baseline: build-baseline
 
 benchmark: build-benchmarks
 	@echo "--- Running Solution Benchmark ---"
-	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/$(BENCHMARK_EXECUTABLE) \
+	@$(DOCKER_RUN) perf stat -d -d -d $(WORKING_DIR)/$(BUILD_DIR)/$(BENCHMARK_EXECUTABLE) \
 	  --benchmark_time_unit=ms \
 	  --benchmark_perf_counters=cycles,instructions,cache-references,cache-misses,L1-dcache-load-misses,L1-icache-load-misses,LLC-load-misses,branch-misses,iTLB-load-misses,dTLB-load-misses,page-faults \
-	  --benchmark_repetitions=20 \
-	  --benchmark_min_time=5s \
+	  --benchmark_repetitions=5 \
 	  --benchmark_enable_random_interleaving=true \
 	  --benchmark_report_aggregates_only=true \
 	  --benchmark_format=json \
 	  --benchmark_out="$(REPORT_DIR)/solution_benchmark.json"
 	@echo "--- Running Baseline Benchmark ---"
-	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/$(BASELINE_BENCHMARK_EXECUTABLE)
+	@$(DOCKER_RUN) perf stat -d -d -d $(WORKING_DIR)/$(BUILD_DIR)/$(BASELINE_BENCHMARK_EXECUTABLE) \
 	  --benchmark_time_unit=ms \
 	  --benchmark_perf_counters=cycles,instructions,cache-references,cache-misses,L1-dcache-load-misses,L1-icache-load-misses,LLC-load-misses,branch-misses,iTLB-load-misses,dTLB-load-misses,page-faults \
-	  --benchmark_repetitions=20 \
-	  --benchmark_min_time=5s \
+	  --benchmark_repetitions=5 \
 	  --benchmark_enable_random_interleaving=true \
 	  --benchmark_report_aggregates_only=true \
 	  --benchmark_format=json \
