@@ -6,8 +6,6 @@
 
 namespace orderbook {
 
-#pragma GCC optimize ("O3", "vectorize", "unroll-loops", "inline-functions", "omit-frame-pointer", "arch=native")
-
 inline Update* merge(const Update* update_ptr, const Update* update_end,
         const Update* cur_ptr, const Update* current_end, Update* next_ptr)
 {
@@ -21,13 +19,7 @@ inline Update* merge(const Update* update_ptr, const Update* update_end,
         }
     }
 
-    while (update_ptr != update_end) {
-        *next_ptr = *update_ptr;
-        next_ptr += bool(update_ptr->quantity);
-        ++update_ptr;
-    }
-
-    next_ptr = std::copy_if(cur_ptr, current_end, next_ptr, [](const Update x) { return x.quantity != 0; });
+    next_ptr = std::copy_if(update_ptr, update_end, next_ptr, [](const Update x) { return x.quantity != 0; });
     next_ptr = std::copy(cur_ptr, current_end, next_ptr);
 
     return next_ptr;
