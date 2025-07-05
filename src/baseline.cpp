@@ -32,14 +32,7 @@ inline Update* mergeSnapDepth(const It1_& lhsBeg, const It1_& lhsEnd, const It2_
         }
     }
 
-
-    for (; _UFirst1 != _ULast1; ++_UFirst1) {
-        const bool bFirst = _UFirst1->quantity;
-        _UDest->price = _UFirst1->price;
-        _UDest->quantity = _UFirst1->quantity;
-        _UDest += bFirst;
-    }
-
+    _UDest = std::copy_if(_UFirst1, _ULast1, _UDest, [](const Update x) { return x.quantity != 0; });
     _Dest = std::copy(_UFirst2, _ULast2, _UDest);
 
     return _Dest;
@@ -68,7 +61,6 @@ uint64_t Solve(const Updates& updates) {
             sharesRem -= p->quantity;
         }
         if (p != ptrs2.second) {
-            // I added static_cast because without it overflow possible (and it happens in my tests)
             cur_result += static_cast<uint64_t>(sharesRem) * p->price;
         }        
 

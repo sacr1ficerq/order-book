@@ -1,7 +1,7 @@
 {
   "context": {
-    "date": "2025-07-04T23:16:48+00:00",
-    "host_name": "dcf1763e4b12",
+    "date": "2025-07-04T23:58:02+00:00",
+    "host_name": "766df3b0dca5",
     "executable": "/workspace/build/baseline_benchmarks",
     "num_cpus": 12,
     "mhz_per_cpu": 4280,
@@ -33,7 +33,7 @@
         "num_sharing": 12
       }
     ],
-    "load_avg": [0.896484,0.881836,0.772461],
+    "load_avg": [0.785156,0.563965,0.493652],
     "library_version": "v1.9.4",
     "library_build_type": "release",
     "json_schema_version": 1
@@ -50,8 +50,8 @@
       "aggregate_name": "mean",
       "aggregate_unit": "time",
       "iterations": 5,
-      "real_time": 3.9471268733258420e+01,
-      "cpu_time": 3.9468536911111073e+01,
+      "real_time": 3.9368186800048633e+01,
+      "cpu_time": 3.9365860577777752e+01,
       "time_unit": "ms"
     },
     {
@@ -65,8 +65,8 @@
       "aggregate_name": "median",
       "aggregate_unit": "time",
       "iterations": 5,
-      "real_time": 3.9375217555465902e+01,
-      "cpu_time": 3.9372852222222257e+01,
+      "real_time": 3.9374293166878893e+01,
+      "cpu_time": 3.9367508277777773e+01,
       "time_unit": "ms"
     },
     {
@@ -80,8 +80,8 @@
       "aggregate_name": "stddev",
       "aggregate_unit": "time",
       "iterations": 5,
-      "real_time": 2.2972522254388736e-01,
-      "cpu_time": 2.2989771007353746e-01,
+      "real_time": 2.9186782443875327e-02,
+      "cpu_time": 2.8999076317905582e-02,
       "time_unit": "ms"
     },
     {
@@ -95,8 +95,8 @@
       "aggregate_name": "cv",
       "aggregate_unit": "percentage",
       "iterations": 5,
-      "real_time": 5.8200617795272774e-03,
-      "cpu_time": 5.8248348701473475e-03,
+      "real_time": 7.4137990129226035e-04,
+      "cpu_time": 7.3665546471695124e-04,
       "time_unit": "ms"
     }
   ]
