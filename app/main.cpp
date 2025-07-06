@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
         std::exit(EXIT_FAILURE);
     }
 
-    orderbook::Updates updates = orderbook::parse_updates(argv[1]);
+    orderbook::Updates updates = orderbook::load(argv[1]);
     std::println("--- Ended reading file ---");
 
     std::println("Result: {}", orderbook::Solve(updates));

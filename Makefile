@@ -1,9 +1,9 @@
 IMAGE_NAME := myclang
 
 BUILD_DIR := build
-TESTS_DIR := tests/data/
+TESTS_DIR := tests/
 REPORT_DIR := report
-INPUT_FILENAME := input.txt
+INPUT_FILENAME := inp
 
 WORKING_DIR := /workspace
 SRC_MOUNT := --mount type=bind,source=.,target=$(WORKING_DIR)
@@ -73,27 +73,27 @@ profile:
 	@echo "--- Building Baseline ---"
 	@$(DOCKER_RUN) cmake --build $(BUILD_DIR) --target $(BASELINE_EXECUTABLE)
 	@echo "--- Running Baseline Performance Tests ---"
-	@$(DOCKER_RUN) perf stat -d -d -d $(WORKING_DIR)/$(BUILD_DIR)/$(BASELINE_EXECUTABLE) $(WORKING_DIR)/$(TESTS_DIR)/$(INPUT_FILENAME)
+	@$(DOCKER_RUN) perf stat -d -d -d $(BUILD_DIR)/$(BASELINE_EXECUTABLE) $(TESTS_DIR)/$(INPUT_FILENAME)
 	@echo "--- Running Solution Performance Tests ---"
-	@$(DOCKER_RUN) perf stat -d -d -d $(WORKING_DIR)/$(BUILD_DIR)/$(SOLUTION_EXECUTABLE) $(WORKING_DIR)/$(TESTS_DIR)/$(INPUT_FILENAME)
+	@$(DOCKER_RUN) perf stat -d -d -d $(BUILD_DIR)/$(SOLUTION_EXECUTABLE) $(TESTS_DIR)/$(INPUT_FILENAME)
 
 solution: $(BUILD_DIR)/$(SOLUTION_EXECUTABLE)
 	@echo "--- Running Solution ---"
-	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/$(SOLUTION_EXECUTABLE) $(WORKING_DIR)/$(TESTS_DIR)/$(INPUT_FILENAME)
+	@$(DOCKER_RUN) $(BUILD_DIR)/$(SOLUTION_EXECUTABLE) $(TESTS_DIR)/$(INPUT_FILENAME)
 
 test: $(BUILD_DIR)/$(TEST_EXECUTABLE)
 	@echo "--- Running Tests ---"
-	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/$(TEST_EXECUTABLE)
+	@$(DOCKER_RUN) $(BUILD_DIR)/$(TEST_EXECUTABLE)
 
 baseline: $(BUILD_DIR)/$(BASELINE_EXECUTABLE)
 	@echo "--- Running Baseline ---"
-	@$(DOCKER_RUN) $(WORKING_DIR)/$(BUILD_DIR)/$(BASELINE_EXECUTABLE) $(WORKING_DIR)/$(TESTS_DIR)/$(INPUT_FILENAME)
+	@$(DOCKER_RUN) $(BUILD_DIR)/$(BASELINE_EXECUTABLE) $(TESTS_DIR)/$(INPUT_FILENAME)
 
 benchmark: $(BUILD_DIR)/$(BASELINE_BENCHMARK_EXECUTABLE) $(BUILD_DIR)/$(BENCHMARK_EXECUTABLE)
 	@echo "--- Running Baseline Benchmark ---"
-	@$(DOCKER_RUN) perf stat -d -d -d $(WORKING_DIR)/$(BUILD_DIR)/$(BASELINE_BENCHMARK_EXECUTABLE) $(BENCHMARK_FLAGS)
+	@$(DOCKER_RUN) perf stat -d -d -d $(BUILD_DIR)/$(BASELINE_BENCHMARK_EXECUTABLE) $(BENCHMARK_FLAGS)
 	@echo "--- Running Solution Benchmark ---"
-	@$(DOCKER_RUN) perf stat -d -d -d $(WORKING_DIR)/$(BUILD_DIR)/$(BENCHMARK_EXECUTABLE) $(BENCHMARK_FLAGS)
+	@$(DOCKER_RUN) perf stat -d -d -d $(BUILD_DIR)/$(BENCHMARK_EXECUTABLE) $(BENCHMARK_FLAGS)
 
 start:
 	@$(DOCKER_INTERACTIVE)

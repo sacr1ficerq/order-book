@@ -5,11 +5,16 @@
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
+#include <stdexcept>
 #include <cassert>
 #include <algorithm>
 #include <array>
 
 #include "orderbook/utils.hpp"
+
+#include "orderbookio/updates.pb.h" // Assumes your proto file is updates.proto
+
+#include <google/protobuf/io/zero_copy_stream_impl.h>
 
 namespace orderbook {
 Updates parse_updates(const std::string& filename) {
@@ -52,4 +57,51 @@ Updates parse_updates(const std::string& filename) {
     }
     return updates;
 }
+
+static constexpr bool DEBUG = 0;
+
+Updates load(const std::string& filename) {
+    std::ifstream input(filename, std::ios::in | std::ios::binary);
+    if (!input) {
+        std::cerr << "Error: Could not open file\n";
+        std::exit(EXIT_FAILURE);
+    }
+
+    google::protobuf::io::IstreamInputStream file_stream(&input);
+    
+    orderbookio::Updates proto_updates;
+    if (!proto_updates.ParseFromZeroCopyStream(&file_stream)) {
+        std::cerr << "Error: Could not parse updates\n";
+        std::exit(EXIT_FAILURE);
+    }
+
+    Updates result;
+    result.reserve(proto_updates.data_size());
+
+    for (const auto& proto_row_with_shares : proto_updates.data()) {
+        const auto& proto_row = proto_row_with_shares.row();
+        
+        UpdateRow user_row;
+        user_row.reserve(proto_row.data_size());
+        if (DEBUG) std::cout << proto_row.data_size() << std::endl;
+        
+        for (const auto& proto_update : proto_row.data()) {
+            user_row.emplace_back(Update{
+                .price = proto_update.price(), 
+                .quantity = proto_update.quantity()
+            });
+            if (DEBUG) std::cout << user_row[user_row.size()-1].price << ' ' << user_row[user_row.size()-1].quantity << std::endl;
+        }
+        
+        result.emplace_back(UpdateRowWithShares{
+            .row = std::move(user_row),
+            .shares = proto_row_with_shares.shares()
+        });
+
+        if (DEBUG) std::cout << proto_row_with_shares.shares() << std::endl;
+    }
+
+    return result;
+}
+
 } // namespace orderbook

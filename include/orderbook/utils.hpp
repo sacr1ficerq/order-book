@@ -22,4 +22,6 @@ using Updates = std::vector<UpdateRowWithShares>;
 uint64_t Solve(const Updates& updates);
 
 Updates parse_updates(const std::string& filename);
+
+Updates load(const std::string& filename);
 } // namespace orderbook

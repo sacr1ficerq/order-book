@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package orderbookio;
+
+message Update {
+  uint32 price = 1;
+  uint32 quantity = 2;
+}
+
+message UpdateRow {
+  repeated Update data = 1;
+}
+
+message UpdateRowWithShares {
+  UpdateRow row = 1;
+  uint32 shares = 2;
+}
+
+message Updates {
+  repeated UpdateRowWithShares data = 1;
+}

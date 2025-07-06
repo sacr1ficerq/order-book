@@ -16,6 +16,8 @@ RUN apt-get update && \
     build-essential \
     cmake \
     vim \
+    protobuf-compiler \
+    libprotobuf-dev \
     linux-tools-$(uname -r) \
     linux-tools-common \
     git && \

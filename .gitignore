@@ -1,6 +1,7 @@
 /build/
-/build_tests/
+__pycache__
 
+data
 input*
 
 *.swp
